@@ -20,7 +20,7 @@ os.makedirs("uploads", exist_ok=True)
 def get_db_connection():
     conn = psycopg2.connect(
         host="localhost",
-        database="Proconnect",
+        database="ProConnect",
         user="postgres",      # your postgres username
         password="teja"      # your postgres password
     )
