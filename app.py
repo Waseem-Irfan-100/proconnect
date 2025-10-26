@@ -238,6 +238,7 @@ def notifications():
     return render_template('notifications.html')  # create notifications.html
 
 # ----------------- QUIZ FEATURE -----------------
+#ttyfyhvyvhg
 
 # Upload extracted questions into DB (admin only)
 @app.route('/admin/upload_pdf', methods=['POST'])
