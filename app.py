@@ -22,7 +22,7 @@ def get_db_connection():
         host="localhost",
         database="Proconnect",
         user="postgres",      # your postgres username
-        password="irfan"      # your postgres password
+        password="teja"      # your postgres password
     )
     return conn
 
