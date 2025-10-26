@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Upload Resume - Proconnect</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-blue-100 to-pink-100 min-h-screen flex items-center justify-center">
+
+  <div class="bg-white shadow-lg rounded-2xl p-8 w-full max-w-lg">
+    <div class="text-center mb-6">
+      <img src="{{ url_for('static', filename='logo.png') }}" alt="Proconnect Logo" class="w-12 h-12 mx-auto">
+      <h1 class="text-2xl font-bold text-blue-600 mt-2">Upload Resume</h1>
+      <p class="text-gray-500 text-sm mt-1">Extract your skills from your resume (PDF/DOCX).</p>
+    </div>
+
+    <form action="/resume" method="POST" enctype="multipart/form-data" class="space-y-4">
+      <input type="file" name="resume" accept=".pdf,.docx" required
+             class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400">
+
+      <button type="submit"
+              class="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition">
+        Upload & Extract Skills
+      </button>
+    </form>
+
+    <p class="text-center text-sm text-gray-600 mt-4">
+      After upload, skills will be saved as <span class="font-semibold text-yellow-600">unverified</span>.  
+      Attempt a quiz to verify them.
+    </p>
+  </div>
+
+  <div class="mt-8">
+  <h2 class="text-xl font-semibold text-gray-700 mb-2">Your Extracted Skills</h2>
+
+  {% if user_skills %}
+  <table class="w-full text-left border rounded-lg">
+    <thead class="bg-gray-100">
+      <tr>
+        <th class="px-4 py-2">Skill Name</th>
+        <th class="px-4 py-2">Verify Skill</th>
+        <th class="px-4 py-2">Remove Skill</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for skill in user_skills %}
+      <tr class="border-t">
+        <td class="px-4 py-2">{{ skill.skill }}</td>
+        <td class="px-4 py-2">
+          <form action="{{ url_for('start_quiz', skill=skill.skill) }}" method="get">
+            <button type="submit" class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600">
+              Verify Skill
+            </button>
+          </form>
+        </td>
+        <td class="px-4 py-2">
+          <form action="{{ url_for('remove_skill', skill_id=skill.id) }}" method="POST">
+            <button type="submit" class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">
+              Remove Skill
+            </button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="text-gray-500 mt-2">No skills extracted yet.</p>
+  {% endif %}
+</div>
+
+
+</body>
+</html>

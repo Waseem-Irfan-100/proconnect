@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Welcome - Join Us</title>
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Neuton:wght@200;300;400;700;800&family=Special+Gothic+Expanded+One&display=swap&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <style>
+    .company-font {
+      font-family: 'Special Gothic Expanded One', sans-serif;
+    }
+    header {
+      display: flex;
+      align-items: center;
+      background: #fff;
+      padding: 10px 20px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    header img {
+      height: 40px;
+      width: 40px;
+      margin-right: 12px;
+    }
+    header h1 {
+      font-size: 22px;
+      color: #333;
+    }
+    .resume-btn {
+      margin-left: auto;
+      background: #6b46c1;
+      color: white;
+      padding: 8px 16px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: 'Poppins', sans-serif;
+      font-weight: 500;
+      transition: 0.2s;
+    }
+    .resume-btn:hover {
+      background: #553c9a;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Company Header -->
+  <header>
+    <img src="{{ url_for('static', filename='logo.png') }}" alt="Company Logo">
+    <h1 class="company-font">MyCompany</h1>
+    <!-- Resume Reader Button -->
+    <a href="{{ url_for('index') }}">
+      <button class="resume-btn">Resume Reader</button>
+    </a>
+  </header>
+
+  <div class="container">
+    <!-- Landing View -->
+    <div id="landing-view" class="view active">
+      <h1>Join a network of professionals</h1>
+      <p>Find your next opportunity or your next great hire.</p>
+      <div class="button-group">
+        <button id="show-signup-btn" class="btn btn-primary">Sign Up</button>
+        <button id="show-login-btn" class="btn btn-secondary">Login</button>
+      </div>
+    </div>
+
+    <!-- Signup Choice -->
+    <div id="signup-choice-view" class="view">
+      <h2>Join as an employee or employer?</h2>
+      <div class="button-group-vertical">
+        <button id="choice-employee-btn" class="btn btn-choice">I'm an Employee</button>
+        <button id="choice-employer-btn" class="btn btn-choice">I'm an Employer</button>
+      </div>
+    </div>
+
+    <!-- Signup Form -->
+    <div id="signup-form-view" class="view">
+      <h2 id="signup-title">Create your account</h2>
+      <form id="signup-form">
+        <input type="text" id="signup-username" placeholder="Username" required>
+        <input type="email" id="signup-email" placeholder="Email Address" required>
+        <input type="password" id="signup-password" placeholder="Password" required>
+        <button type="submit" class="btn btn-primary">Agree & Join</button>
+      </form>
+      <p class="form-footer">Already on our platform? <a href="#" id="go-to-login-link">Sign In</a></p>
+    </div>
+
+    <!-- Login Form -->
+    <div id="login-form-view" class="view">
+      <h2>Welcome Back</h2>
+      <form id="login-form">
+        <input type="email" id="login-email" placeholder="Email Address" required>
+        <input type="password" id="login-password" placeholder="Password" required>
+        <button type="submit" class="btn btn-primary">Login</button>
+      </form>
+      <p class="form-footer">New to our platform? <a href="#" id="go-to-signup-link">Sign Up</a></p>
+    </div>
+
+    <!-- Welcome -->
+    <div id="welcome-view" class="view">
+      <h1 id="welcome-message"></h1>
+    </div>
+  </div>
+
+  <!-- Employee Dashboard -->
+  <div id="employee-dashboard" class="view">
+    <h1>Employee Dashboard</h1>
+    <p>Welcome! Manage your career here 🚀</p>
+
+    <section class="dashboard-section">
+      <h2>🔍 Search Jobs</h2>
+      <input type="text" placeholder="Job title, keyword, or company" id="job-search-input">
+      <input type="text" placeholder="Location" id="job-location-input">
+      <button class="btn btn-primary">Search</button>
+      <div id="job-results" class="results-box"></div>
+    </section>
+
+    <section class="dashboard-section">
+      <h2>📄 My Applications</h2>
+      <div id="applications-list" class="results-box">
+        <p>No applications yet.</p>
+      </div>
+    </section>
+
+    <section class="dashboard-section">
+      <h2>👤 Profile Settings</h2>
+      <form id="employee-profile-form">
+        <input type="text" placeholder="Full Name" required>
+        <input type="text" placeholder="Skills (comma separated)" required>
+        <textarea placeholder="Short Bio"></textarea>
+        <label>Upload Resume:</label>
+        <input type="file" accept=".pdf,.doc,.docx">
+        <button class="btn btn-primary" type="submit">Save Profile</button>
+      </form>
+    </section>
+  </div>
+
+  <!-- Employer Dashboard -->
+  <div id="employer-dashboard" class="view">
+    <h1>Employer Dashboard</h1>
+    <p>Welcome! Manage hiring here 💼</p>
+
+    <section class="dashboard-section">
+      <h2>📑 Candidate Applications</h2>
+      <div id="candidate-applications" class="results-box">
+        <p>No applications yet.</p>
+      </div>
+    </section>
+
+    <section class="dashboard-section">
+      <h2>🏢 Company Profile Settings</h2>
+      <form id="company-profile-form">
+        <input type="text" placeholder="Company Name" required>
+        <input type="text" placeholder="Industry" required>
+        <textarea placeholder="Company Description"></textarea>
+        <button class="btn btn-primary" type="submit">Save Company Profile</button>
+      </form>
+    </section>
+
+    <section class="dashboard-section">
+      <h2>🔍 Search Candidates</h2>
+      <input type="text" placeholder="Skill, job title, or keyword" id="candidate-search-input">
+      <button class="btn btn-primary">Search</button>
+      <div id="candidate-results" class="results-box"></div>
+    </section>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

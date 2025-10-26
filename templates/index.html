@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Proconnect - Home</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background: linear-gradient(to bottom right, #a2d2ff, #ffc2d1);
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- ✅ Top Navigation -->
+  <header class="bg-white shadow-md py-3 px-6 flex items-center justify-between">
+    <div class="flex items-center space-x-3">
+      <img src="{{ url_for('static', filename='logo.png') }}" alt="Proconnect Logo" class="w-8 h-8">
+      <h1 class="text-2xl font-bold text-blue-600" style="font-family: cursive;">Proconnect</h1>
+    </div>
+    <nav class="flex space-x-6 text-gray-700">
+      <a href="#" class="hover:text-blue-500">Home</a>
+      <a href="#" class="hover:text-blue-500">My Network</a>
+      <a href="#" class="hover:text-blue-500">Jobs</a>
+      <a href="#" class="hover:text-blue-500">Messages</a>
+      <a href="#" class="hover:text-blue-500">Notifications</a>
+    </nav>
+  </header>
+
+  <!-- ✅ Main Layout -->
+  <main class="flex flex-1 mt-6 px-6 space-x-6">
+    
+    <!-- Left Sidebar -->
+    <aside class="hidden md:block w-1/4">
+      <div class="bg-white rounded-lg shadow-md p-4 mb-6">
+        <div class="flex flex-col items-center">
+          <img src="{{ url_for('static', filename='profile-placeholder.png') }}" class="w-20 h-20 rounded-full mb-3 border-4 border-blue-200" alt="Profile">
+          <h2 class="text-lg font-semibold">John Doe</h2>
+          <p class="text-sm text-gray-500 text-center">Software Engineer | Open to opportunities</p>
+        </div>
+        <hr class="my-4">
+        <p class="text-sm text-gray-600">Connections: <span class="font-semibold text-blue-600">245</span></p>
+        <p class="text-sm text-gray-600 mt-1">Profile Views: <span class="font-semibold text-blue-600">89</span></p>
+      </div>
+    </aside>
+
+    <!-- Feed Section -->
+    <section class="flex-1 max-w-2xl">
+      
+      <!-- Post Composer -->
+      <div class="bg-white rounded-lg shadow-md p-4 mb-6">
+        <div class="flex items-center space-x-3">
+          <img src="{{ url_for('static', filename='profile-placeholder.png') }}" class="w-12 h-12 rounded-full" alt="User">
+          <input type="text" placeholder="Share your thoughts..." class="w-full border rounded-full px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400">
+        </div>
+        <div class="flex justify-between mt-3 text-sm text-gray-600">
+          <button class="flex items-center space-x-2 hover:text-blue-500">
+            <span>📷</span><span>Photo</span>
+          </button>
+          <button class="flex items-center space-x-2 hover:text-blue-500">
+            <span>🎥</span><span>Video</span>
+          </button>
+          <button class="flex items-center space-x-2 hover:text-blue-500">
+            <span>📝</span><span>Write</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Posts Feed -->
+      {% for post in posts %}
+      <div class="bg-white rounded-lg shadow-md p-4 mb-6">
+        <div class="flex items-center space-x-3">
+          <img src="{{ url_for('static', filename='profile-placeholder.png') }}" class="w-10 h-10 rounded-full" alt="User">
+          <div>
+            <h3 class="font-semibold">{{ post.user }}</h3>
+            <p class="text-xs text-gray-500">{{ post.time }}</p>
+          </div>
+        </div>
+        <p class="mt-3 text-gray-700">{{ post.content }}</p>
+        {% if post.image %}
+        <img src="{{ url_for('static', filename=post.image) }}" class="rounded-lg mt-3 w-full">
+        {% endif %}
+        <div class="flex justify-between mt-4 text-gray-600 text-sm">
+          <span>👍 {{ post.likes }}</span>
+          <span>💬 {{ post.comments }}</span>
+          <span>🔁 {{ post.reposts }}</span>
+        </div>
+      </div>
+      {% endfor %}
+    </section>
+
+    <!-- Right Sidebar -->
+    <aside class="hidden lg:block w-1/4">
+      <div class="bg-white rounded-lg shadow-md p-4 mb-6">
+        <h2 class="text-lg font-semibold mb-3">People you may know</h2>
+        <div class="space-y-3">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+              <img src="{{ url_for('static', filename='profile-placeholder.png') }}" class="w-10 h-10 rounded-full">
+              <div>
+                <p class="font-semibold text-sm">Jane Smith</p>
+                <p class="text-xs text-gray-500">Data Scientist</p>
+              </div>
+            </div>
+            <button class="bg-blue-500 text-white text-xs px-3 py-1 rounded hover:bg-blue-600">Connect</button>
+          </div>
+          <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+              <img src="{{ url_for('static', filename='profile-placeholder.png') }}" class="w-10 h-10 rounded-full">
+              <div>
+                <p class="font-semibold text-sm">Michael Lee</p>
+                <p class="text-xs text-gray-500">UI/UX Designer</p>
+              </div>
+            </div>
+            <button class="bg-blue-500 text-white text-xs px-3 py-1 rounded hover:bg-blue-600">Connect</button>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </main>
+</body>
+</html>

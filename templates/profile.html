@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>User Profile</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex items-center justify-center">
+
+  <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-lg">
+    <h1 class="text-3xl font-bold text-blue-600 mb-6 text-center">👤 User Profile</h1>
+    
+    <form action="/save_profile" method="POST" enctype="multipart/form-data" class="space-y-5">
+      <!-- Profile Picture Upload -->
+      <div class="text-center">
+        <label class="block text-sm font-medium text-gray-700 mb-2">Profile Picture</label>
+        <input type="file" name="profile_pic" accept="image/*" 
+               class="block w-full text-sm text-gray-500 border border-gray-300 rounded-lg cursor-pointer focus:outline-none">
+      </div>
+
+      <!-- Name -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+        <input type="text" name="name" placeholder="Enter your full name" required
+               class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-400 focus:outline-none">
+      </div>
+
+      <!-- Email -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+        <input type="email" name="email" placeholder="example@domain.com" required
+               class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-400 focus:outline-none">
+      </div>
+
+      <!-- Phone -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+        <input type="tel" name="phone" placeholder="+91 9876543210"
+               class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-400 focus:outline-none">
+      </div>
+
+      <!-- Bio -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">About You</label>
+        <textarea name="bio" rows="3" placeholder="Write a short bio about yourself..."
+                  class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-400 focus:outline-none"></textarea>
+      </div>
+
+      <!-- Skills -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">Skills</label>
+        <input type="text" name="skills" placeholder="e.g. Python, Data Science, Web Development"
+               class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-400 focus:outline-none">
+      </div>
+
+      <!-- College -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1">College / University</label>
+        <input type="text" name="college" placeholder="IIIT Kottayam"
+               class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-400 focus:outline-none">
+      </div>
+
+      <!-- Buttons -->
+      <div class="flex justify-between items-center mt-6">
+        <a href="{{ url_for('index') }}" 
+           class="text-blue-500 hover:underline">⬅ Back to Dashboard</a>
+
+        <button type="submit" 
+                class="bg-blue-500 hover:bg-blue-600 text-white px-5 py-2 rounded-lg shadow">
+          Save Profile
+        </button>
+      </div>
+    </form>
+  </div>
+
+</body>
+</html>

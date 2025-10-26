@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz - {{ skill }}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-blue-100 to-pink-100 min-h-screen flex justify-center items-center">
+
+  <div class="w-full max-w-3xl bg-white shadow-2xl rounded-2xl p-6 relative">
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-6">
+      <h2 class="text-2xl font-bold text-gray-800">Skill Quiz: {{ skill }}</h2>
+      <div id="timer" class="text-lg font-semibold text-red-600">15:00</div>
+    </div>
+
+    <!-- Quiz container -->
+    <form id="quizForm" class="space-y-6">
+      {% for q in questions %}
+      <div class="question hidden" data-index="{{ loop.index0 }}">
+        <p class="text-lg font-medium mb-4">{{ loop.index }}. {{ q.question_text }}</p>
+        <div class="space-y-2">
+          {% for option in q.options %}
+          <label class="block border p-2 rounded-lg cursor-pointer hover:bg-blue-50">
+            <input type="radio" name="q{{ q.id }}" value="{{ option }}" class="mr-2">
+            {{ option }}
+          </label>
+          {% endfor %}
+        </div>
+      </div>
+      {% endfor %}
+
+      <!-- Navigation -->
+      <div class="flex justify-between mt-6">
+        <button type="button" id="prevBtn" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-400">Previous</button>
+        <button type="button" id="nextBtn" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">Next</button>
+      </div>
+
+      <!-- Submit -->
+      <div class="mt-6 text-center">
+        <button type="button" id="submitBtn" class="hidden bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600">Submit Quiz</button>
+      </div>
+    </form>
+
+    <!-- Results -->
+    <div id="resultBox" class="hidden mt-6 p-4 bg-green-50 border border-green-400 rounded-lg text-center">
+      <h3 class="text-xl font-bold text-green-700 mb-2">Quiz Completed!</h3>
+      <p class="text-lg">Your Score: <span id="scoreText" class="font-semibold"></span></p>
+    </div>
+  </div>
+
+  <script>
+    const questions = document.querySelectorAll(".question");
+    let current = 0;
+
+    const prevBtn = document.getElementById("prevBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    const submitBtn = document.getElementById("submitBtn");
+    const quizForm = document.getElementById("quizForm");
+
+    // Show current question
+    function showQuestion(index) {
+      questions.forEach(q => q.classList.add("hidden"));
+      questions[index].classList.remove("hidden");
+
+      prevBtn.style.display = index === 0 ? "none" : "inline-block";
+      nextBtn.style.display = index === questions.length - 1 ? "none" : "inline-block";
+      submitBtn.classList.toggle("hidden", index !== questions.length - 1);
+    }
+
+    prevBtn.addEventListener("click", () => {
+      if (current > 0) {
+        current--;
+        showQuestion(current);
+      }
+    });
+
+    nextBtn.addEventListener("click", () => {
+      if (current < questions.length - 1) {
+        current++;
+        showQuestion(current);
+      }
+    });
+
+    // Timer (15 minutes)
+    let time = 15 * 60;
+    const timerEl = document.getElementById("timer");
+    const timer = setInterval(() => {
+      let minutes = Math.floor(time / 60);
+      let seconds = time % 60;
+      timerEl.textContent = `${minutes}:${seconds.toString().padStart(2, "0")}`;
+      time--;
+      if (time < 0) {
+        clearInterval(timer);
+        submitQuiz();
+      }
+    }, 1000);
+
+    // Submit quiz
+    function submitQuiz() {
+      const formData = new FormData(quizForm);
+      let score = 0;
+
+      {% for q in questions %}
+        const ans = formData.get("q{{ q.id }}");
+        if (ans === "{{ q.correct_option }}") {
+          score++;
+        }
+      {% endfor %}
+
+      // Send to backend
+      fetch("/api/submit_quiz", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ score: score, skill: "{{ skill }}" })
+      }).then(res => res.json()).then(data => {
+        quizForm.classList.add("hidden");
+        document.getElementById("resultBox").classList.remove("hidden");
+        document.getElementById("scoreText").textContent = `${score} / {{ questions|length }}`;
+      });
+    }
+
+    submitBtn.addEventListener("click", submitQuiz);
+
+    // Init
+    showQuestion(current);
+  </script>
+
+</body>
+</html>

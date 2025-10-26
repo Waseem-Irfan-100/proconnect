@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ProConnect</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Base styles for the card, enabling the slide animation */
+        .forms-container {
+            transition: transform 0.7s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+        }
+
+        /* Class to slide to the signup form */
+        .slide-left {
+            transform: translateX(-50%);
+        }
+
+        /* Hide the inactive form to prevent interaction */
+        .form-inactive {
+            display: none;
+        }
+
+        /* Basic spinner for loading state */
+        .spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-[#f3f4f6] min-h-screen flex items-center justify-center font-sans p-4">
+
+    <!-- The main application container -->
+    <div id="app-container" class="relative w-full max-w-2xl mx-auto bg-white p-8 rounded-xl shadow-2xl overflow-hidden">
+        
+        <!-- This is where the login/signup form and main content will be rendered -->
+    </div>
+
+    <script>
+        // Lucide icons are used for visual appeal, loaded as SVGs
+        const icons = {
+            user: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 text-gray-500"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>,
+            mail: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 text-gray-500"><rect width="20" height="16" x="2" y="4" rx="2"></rect><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"></path></svg>,
+            lock: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 text-gray-500"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>,
+            sparkles: <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-5 w-5 mr-2"><path d="m12 3-1.912 2.748a.75.75 0 0 1-1.125.214L7.5 3.5 5.798 5.462a.75.75 0 0 1-.774.209L2.5 4.5l-.298 2.385a.75.75 0 0 1-.774.209L.5 9.5l2.424 1.839a.75.75 0 0 1 .214 1.125L3 16.5l2.748-1.912a.75.75 0 0 1 1.125.214L9 16.5l1.986-2.527a.75.75 0 0 1 .774-.209l2.5 1 2.385-.298a.75.75 0 0 1 .209-.774L16.5 13.5l1.912-2.748a.75.75 0 0 1-1.125-.214L15.5 7.5l2.527-1.986a.75.75 0 0 1 .209-.774L19.5 3.5l-2.385-.298a.75.75 0 0 1-.774.209L12 3Z"></path></svg>,
+        };
+
+        const appContainer = document.getElementById('app-container');
+        let isLoggedIn = false;
+        let isLogin = true;
+
+        // Function to render the login/signup form
+        function renderAuthPage() {
+            appContainer.innerHTML = `
+                <div class="w-full relative overflow-hidden">
+                    <div id="forms-container" class="flex w-[200%] transition-transform duration-700 ease-in-out">
+                        
+                        <!-- Login Form -->
+                        <div class="w-1/2 flex-shrink-0 p-4">
+                            <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">
+                                Log In to <span class="text-[#252a36]">ProConnect</span>
+                            </h1>
+                            <form id="loginForm">
+                                <div class="relative mb-4">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">${icons.user}</div>
+                                    <input type="text" name="username" placeholder="Username" required class="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#252a36] focus:border-transparent transition-all duration-300">
+                                </div>
+                                <div class="relative mb-4">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">${icons.lock}</div>
+                                    <input type="password" name="password" placeholder="Password" required class="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#252a36] focus:border-transparent transition-all duration-300">
+                                </div>
+                                <button type="submit" class="w-full bg-[#252a36] text-white font-semibold py-3 rounded-lg hover:bg-gray-800 transition-colors duration-300 transform hover:scale-105 active:scale-100">
+                                    Log In
+                                </button>
+                                <p class="mt-6 text-center text-gray-600">
+                                    Don't have an account? <span id="toggleToSignup" class="text-[#252a36] font-semibold cursor-pointer hover:underline">Sign Up</span>
+                                </p>
+                            </form>
+                        </div>
+                        
+                        <!-- Signup Form -->
+                        <div class="w-1/2 flex-shrink-0 p-4">
+                            <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">
+                                Join <span class="text-[#252a36]">ProConnect</span>
+                            </h1>
+                            <form id="signupForm">
+                                <div class="flex space-x-4">
+                                    <div class="relative mb-4 w-1/2">
+                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">${icons.user}</div>
+                                        <input type="text" name="firstName" placeholder="First Name" required class="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#252a36] focus:border-transparent transition-all duration-300">
+                                    </div>
+                                    <div class="relative mb-4 w-1/2">
+                                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">${icons.user}</div>
+                                        <input type="text" name="lastName" placeholder="Last Name" required class="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#252a36] focus:border-transparent transition-all duration-300">
+                                    </div>
+                                </div>
+                                <div class="relative mb-4">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">${icons.mail}</div>
+                                    <input type="email" name="email" placeholder="Email ID" required class="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#252a36] focus:border-transparent transition-all duration-300">
+                                </div>
+                                <div class="relative mb-4">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">${icons.lock}</div>
+                                    <input type="password" name="password" placeholder="Create Password" required class="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#252a36] focus:border-transparent transition-all duration-300">
+                                </div>
+                                <div class="relative mb-4">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">${icons.lock}</div>
+                                    <input type="password" name="confirmPassword" placeholder="Confirm Password" required class="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#252a36] focus:border-transparent transition-all duration-300">
+                                </div>
+                                <p id="signupError" class="text-red-500 text-center mb-4 hidden"></p>
+                                <button type="submit" class="w-full bg-[#252a36] text-white font-semibold py-3 rounded-lg hover:bg-gray-800 transition-colors duration-300 transform hover:scale-105 active:scale-100">
+                                    Sign Up
+                                </button>
+                                <p class="mt-6 text-center text-gray-600">
+                                    Already have an account? <span id="toggleToLogin" class="text-[#252a36] font-semibold cursor-pointer hover:underline">Log In</span>
+                                </p>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Add event listeners for form toggling
+            document.getElementById('toggleToSignup').addEventListener('click', () => {
+                document.getElementById('forms-container').classList.add('slide-left');
+                isLogin = false;
+            });
+            document.getElementById('toggleToLogin').addEventListener('click', () => {
+                document.getElementById('forms-container').classList.remove('slide-left');
+                isLogin = true;
+            });
+
+            // Add form submission handlers
+            document.getElementById('loginForm').addEventListener('submit', (e) => {
+                e.preventDefault();
+                // In a real app, you would process this login.
+                isLoggedIn = true;
+                renderApp();
+            });
+            document.getElementById('signupForm').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const form = e.target;
+                const password = form.password.value;
+                const confirmPassword = form.confirmPassword.value;
+                const errorElement = document.getElementById('signupError');
+
+                if (password !== confirmPassword) {
+                    errorElement.textContent = 'Passwords do not match!';
+                    errorElement.classList.remove('hidden');
+                    return;
+                }
+                errorElement.classList.add('hidden');
+                // In a real app, you would process this signup.
+                isLoggedIn = true;
+                renderApp();
+            });
+        }
+
+        // Function to render the main page content after login
+        async function renderApp() {
+            const logoutButtonHtml = <button id="logoutBtn" class="absolute top-4 right-4 text-sm text-[#252a36] font-semibold hover:underline">Log Out</button>;
+            const bioAssistantHtml = `
+                <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">
+                    Welcome to <span class="text-[#252a36]">ProConnect</span>
+                </h1>
+                <div class="bg-gray-100 border-l-4 border-[#252a36] text-gray-800 p-4 mb-6 rounded-lg" role="alert">
+                    <p class="font-bold">✨ ProConnect's Professional Bio Assistant</p>
+                    <p class="text-sm mt-1">
+                        Tell us about your skills and experience, and we'll craft a polished bio for your profile!
+                    </p>
+                </div>
+                <div class="mb-6">
+                    <textarea id="bioInput" placeholder="e.g., 'Experienced software engineer, passionate about React and AI, specializing in scalable web applications.'" rows="5" class="w-full p-4 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#252a36] focus:border-transparent transition-all duration-300"></textarea>
+                </div>
+                <button id="generateBtn" class="w-full bg-[#252a36] text-white font-semibold py-3 rounded-lg hover:bg-gray-800 transition-colors duration-300 transform hover:scale-105 active:scale-100 flex items-center justify-center">
+                    ${icons.sparkles} Generate Professional Bio
+                </button>
+                <div id="apiError" class="mt-4 text-red-500 text-center p-3 bg-red-100 rounded-lg hidden"></div>
+                <div id="generatedBio" class="mt-6 hidden">
+                    <h2 class="text-xl font-bold text-gray-700 mb-2">Your New Bio:</h2>
+                    <div id="bioContent" class="bg-gray-50 p-4 rounded-lg border border-gray-200 whitespace-pre-wrap"></div>
+                </div>
+            `;
+            appContainer.innerHTML = logoutButtonHtml + bioAssistantHtml;
+
+            document.getElementById('logoutBtn').addEventListener('click', () => {
+                isLoggedIn = false;
+                renderAuthPage();
+            });
+
+            const generateBtn = document.getElementById('generateBtn');
+            const bioInput = document.getElementById('bioInput');
+            const apiError = document.getElementById('apiError');
+            const generatedBioContainer = document.getElementById('generatedBio');
+            const bioContent = document.getElementById('bioContent');
+
+            generateBtn.addEventListener('click', async () => {
+                const input = bioInput.value.trim();
+                if (!input) {
+                    apiError.textContent = 'Please enter some details to generate a bio.';
+                    apiError.classList.remove('hidden');
+                    return;
+                }
+
+                generateBtn.disabled = true;
+                generateBtn.innerHTML = '<span class="spinner"></span> Generating...';
+                apiError.classList.add('hidden');
+                generatedBioContainer.classList.add('hidden');
+
+                try {
+                    const prompt = `Act as a professional copywriter for a networking site.
+                    Take the following keywords and details and write a concise, compelling, and professional bio.
+                    The bio should be written in the first person. Do not use phrases like "Based on the keywords..." or "As a professional copywriter...".
+                    Here are the details:
+                    ${input}
+                    `;
+                    const chatHistory = [{ role: "user", parts: [{ text: prompt }] }];
+                    const payload = { contents: chatHistory };
+                    const apiKey = ""; // Canvas will provide this
+                    const apiUrl = https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey};
+
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(API call failed with status: ${response.status});
+                    }
+
+                    const result = await response.json();
+                    const text = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+
+                    if (text) {
+                        bioContent.textContent = text;
+                        generatedBioContainer.classList.remove('hidden');
+                    } else {
+                        throw new Error('Unexpected API response structure or content missing.');
+                    }
+                } catch (error) {
+                    console.error('Error generating bio:', error);
+                    apiError.textContent = An error occurred: ${error.message};
+                    apiError.classList.remove('hidden');
+                } finally {
+                    generateBtn.disabled = false;
+                    generateBtn.innerHTML = ${icons.sparkles} Generate Professional Bio;
+                }
+            });
+        }
+
+        // Initial render based on login state
+        document.addEventListener('DOMContentLoaded', () => {
+            if (isLoggedIn) {
+                renderApp();
+            } else {
+                renderAuthPage();
+            }
+        });
+    </script>
+</body>
+</html>
