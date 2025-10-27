@@ -1,0 +1,27 @@
+{
+  "Python": [
+    {
+      "question": "What is the output of print(type([]))?",
+      "options": ["<class 'list'>", "<class 'tuple'>", "<class 'dict'>", "<class 'set'>"],
+      "answer": "<class 'list'>"
+    },
+    {
+      "question": "Which keyword is used to define a function in Python?",
+      "options": ["func", "define", "def", "lambda"],
+      "answer": "def"
+    }
+  ],
+
+  "Machine Learning": [
+    {
+      "question": "Which library is most commonly used for machine learning in Python?",
+      "options": ["NumPy", "TensorFlow", "Matplotlib", "Seaborn"],
+      "answer": "TensorFlow"
+    },
+    {
+      "question": "Which algorithm is used for classification?",
+      "options": ["K-Means", "Linear Regression", "Logistic Regression", "Apriori"],
+      "answer": "Logistic Regression"
+    }
+  ]
+}

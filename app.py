@@ -8,6 +8,9 @@ import pdfplumber
 import json
 import os
 import unicodedata
+from werkzeug.utils import secure_filename
+import docx
+
 
 app = Flask(__name__)
 app.secret_key = "supersecretkey"   # change in production
@@ -22,7 +25,7 @@ def get_db_connection():
         host="localhost",
         database="Proconnect",
         user="postgres",      # your postgres username
-        password="teja"      # your postgres password
+        password="irfan"      # your postgres password
     )
     return conn
 
@@ -145,6 +148,7 @@ def extract_questions_from_pdf(pdf_path):
 # ----------------- MAIN PAGES -----------------
 @app.route('/')
 def index():
+
     return render_template('dashboard1.html')
 
 
@@ -237,89 +241,90 @@ def messaging():
 def notifications():
     return render_template('notifications.html')  # create notifications.html
 
-# ----------------- QUIZ FEATURE -----------------
-#ttyfyhvyvhg
 
-# Upload extracted questions into DB (admin only)
-@app.route('/admin/upload_pdf', methods=['POST'])
-def upload_pdf():
-    if 'user_id' not in session or session.get('user_type') != 'admin':
-        flash("Unauthorized access!", "danger")
-        return redirect(url_for("dashboard"))
-
-    if 'pdf' not in request.files:
-        return "No file", 400
-    file = request.files['pdf']
-    pdf_path = f"uploads/{file.filename}"
-    file.save(pdf_path)
-
-    questions = extract_questions_from_pdf(pdf_path)
-
-    conn = get_db_connection()
-    cur = conn.cursor()
-    for q in questions:
-        cur.execute("""
-            INSERT INTO questions (skill, question_text, options, correct_option)
-            VALUES (%s, %s, %s, %s)
-        """, (
-            "Python",  # 🔑 you can make this dynamic later
-            q['question'],
-            json.dumps(q['options']),
-            q['answer']
-        ))
-    conn.commit()
-    cur.close()
-    conn.close()
-
-    flash(f"Uploaded {len(questions)} questions successfully!", "success")
-    return redirect(url_for("dashboard"))
-
-
-# Serve quiz for a skill
+# ------------------ QUIZ FEATURE ------------------
 @app.route('/quiz/<skill>')
 def start_quiz(skill):
+    """Serve quiz questions for a specific skill from JSON file"""
     if 'user_id' not in session:
         flash("Please login first.", "warning")
         return redirect(url_for('login'))
 
-    conn = get_db_connection()
-    cur = conn.cursor(cursor_factory=RealDictCursor)
-    cur.execute("SELECT * FROM questions WHERE skill = %s", (skill,))
-    all_questions = cur.fetchall()
-    cur.close()
-    conn.close()
+    # Use full path
+    json_path = os.path.join(app.root_path, 'static', 'quiz_data.json')
 
-    # Convert JSON options back to list
-    for q in all_questions:
-        q['options'] = json.loads(q['options'])
+    # Load quiz data
+    try:
+        with open(json_path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+    except Exception as e:
+        flash(f"Error loading quiz file: {e}", "danger")
+        return redirect(url_for('dashboard'))
 
-    # Pick max 15 random questions
-    selected = random.sample(all_questions, min(15, len(all_questions)))
+    # Normalize skill key (in case of underscores)
+    skill_key = skill.replace("_", " ")
+    if skill_key not in data:
+        flash(f"No quiz found for '{skill_key}'.", "warning")
+        return redirect(url_for('dashboard'))
 
-    return render_template("quiz.html", questions=selected, skill=skill)
+    all_questions = data[skill_key]
+    if not isinstance(all_questions, list) or len(all_questions) == 0:
+        flash(f"No questions available for '{skill_key}'.", "warning")
+        return redirect(url_for('dashboard'))
 
+    # Pick up to 15 random questions
+    sample_count = min(15, len(all_questions))
+    selected_raw = random.sample(all_questions, sample_count)
 
-# Save quiz result
+    selected = []
+    for i, q in enumerate(selected_raw, start=1):
+        question_text = q.get('question') or q.get('question_text') or str(q)
+        options = q.get('options', [])
+        correct_option = q.get('answer') or q.get('correct_option') or q.get('correct')
+        selected.append({
+            "id": i,
+            "question_text": question_text,
+            "options": options,
+            "correct_option": correct_option
+        })
+
+    # Debug print
+    print(f"Loaded {len(selected)} questions for {skill_key}")
+    print(json.dumps(selected, indent=2))
+
+    # ✅ IMPORTANT: pass as normal list, not JSON string
+    return render_template('quiz.html', skill=skill_key, questions=selected)
+
 @app.route('/api/submit_quiz', methods=['POST'])
-def submit_quiz():
+def submit_quiz_api():
     if 'user_id' not in session:
-        return jsonify({"error": "Unauthorized"}), 401
+        return jsonify({"error": "Not logged in"}), 401
 
     data = request.get_json()
+    skill = data.get("skill")
     score = data.get("score", 0)
-    skill = data.get("skill", "General")
+    total = data.get("total", 1)  # avoid division by zero
 
-    conn = get_db_connection()
-    cur = conn.cursor()
-    cur.execute("""
-        INSERT INTO quiz_results (user_id, skill, score)
-        VALUES (%s, %s, %s)
-    """, (session['user_id'], skill, score))
-    conn.commit()
-    cur.close()
-    conn.close()
+    pass_threshold = 0.7  # 70% passing
+    passed = (score / total) >= pass_threshold
 
-    return jsonify({"message": "Quiz result stored!", "score": score})
+    if passed:
+        try:
+            conn = get_db_connection()
+            cur = conn.cursor()
+            # Update skill to verified if passed
+            cur.execute("""
+                UPDATE user_skills
+                SET status = 'verified'
+                WHERE user_id = %s AND skill = %s
+            """, (session['user_id'], skill))
+            conn.commit()
+            cur.close()
+            conn.close()
+        except Exception as e:
+            return jsonify({"error": f"Database error: {e}"}), 500
+
+    return jsonify({"passed": passed, "score": score, "total": total})
 
 
 # ----------------- RESUME -----------------
@@ -332,6 +337,7 @@ def upload_resume():
     conn = get_db_connection()
     cur = conn.cursor(cursor_factory=RealDictCursor)
 
+    # Step 1: Handle resume upload
     if request.method == 'POST':
         if 'resume' not in request.files:
             flash("No file uploaded.", "danger")
@@ -354,23 +360,36 @@ def upload_resume():
             flash(f"Error reading resume: {e}", "danger")
             return redirect(url_for("upload_resume"))
 
-        # Extract skills
-        skills_found = extract_skills(text, skills_list)
+        # Extract skills from new resume
+        new_skills_found = extract_skills(text, skills_list)  # dict: {skill: status}
 
         try:
-            for skill, status in skills_found.items():
-                cur.execute("""
-                    INSERT INTO user_skills (user_id, skill, status)
-                    VALUES (%s, %s, %s)
-                    ON CONFLICT (user_id, skill) DO NOTHING
-                """, (session['user_id'], skill, status))
+            # Step 2: Fetch existing skills from DB
+            cur.execute("SELECT skill, status FROM user_skills WHERE user_id = %s", (session['user_id'],))
+            existing_skills = {row['skill']: row['status'] for row in cur.fetchall()}
+
+            # Step 3: Merge skills
+            for skill, status in new_skills_found.items():
+                if skill in existing_skills:
+                    # If already verified, keep verified
+                    if existing_skills[skill] == 'verified':
+                        continue
+                    # else keep as unverified
+                    else:
+                        continue  # unverified already exists, no action
+                else:
+                    # Insert new unverified skill
+                    cur.execute("""
+                        INSERT INTO user_skills (user_id, skill, status)
+                        VALUES (%s, %s, %s)
+                    """, (session['user_id'], skill, status))
             conn.commit()
-            flash(f"Extracted {len(skills_found)} skills from resume.", "success")
+            flash(f"Extracted {len(new_skills_found)} skills from resume.", "success")
         except Exception as e:
             conn.rollback()
             flash(f"Database error while inserting skills: {e}", "danger")
 
-    # Fetch skills to show on the page
+    # Step 4: Fetch merged skills for display
     cur.execute("SELECT * FROM user_skills WHERE user_id = %s", (session['user_id'],))
     user_skills = cur.fetchall()
     cur.close()
@@ -396,6 +415,8 @@ def remove_skill(skill_id):
 
     flash("Skill removed successfully!", "success")
     return redirect(url_for('upload_resume'))
+
+
 @app.route('/profile')
 def profile():
     return render_template('profile.html')
